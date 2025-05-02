@@ -1,0 +1,255 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de usuário
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  phone         String?
+  role          Role           @default(CLIENT)
+  active        Boolean        @default(true)
+  loyaltyPoints Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // Relações
+  barber        Barber?
+  ownedBarbershops Barbershop[] @relation("BarbershopOwner")
+  appointments  Appointment[]  @relation("ClientAppointments")
+  queueEntries  QueueEntry[]   @relation("ClientQueueEntries")
+  payments      Payment[]
+  subscriptions Subscription[] @relation("SubscriptionOwner")
+}
+
+enum Role {
+  CLIENT
+  BARBER
+  ADMIN
+}
+
+// Modelo de barbearia
+model Barbershop {
+  id              String        @id @default(uuid())
+  name            String
+  address         String
+  city            String
+  state           String
+  zipCode         String
+  phone           String
+  email           String?
+  openingHours    Json
+  isOpen          Boolean       @default(false)
+  usesQueue       Boolean       @default(true)
+  usesAppointment Boolean       @default(true)
+  usesLoyalty     Boolean       @default(false)
+  loyaltyThreshold Int          @default(150)
+  active          Boolean       @default(true)
+  plan            Plan          @default(BASIC)
+  ownerId         String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relações
+  owner           User          @relation("BarbershopOwner", fields: [ownerId], references: [id])
+  barbers         Barber[]
+  services        Service[]
+  appointments    Appointment[]
+  queueEntries    QueueEntry[]
+  payments        Payment[]
+  subscription    Subscription?
+}
+
+enum Plan {
+  BASIC
+  PREMIUM
+}
+
+// Modelo de barbeiro
+model Barber {
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  barbershopId     String
+  specialties      String[]
+  bio              String?
+  workingHours     Json
+  isAvailable      Boolean       @default(false)
+  acceptsAppointment Boolean     @default(true)
+  acceptsQueue     Boolean       @default(true)
+  rating           Float         @default(0)
+  ratingCount      Int           @default(0)
+  active           Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+  // Relações
+  user             User          @relation(fields: [userId], references: [id])
+  barbershop       Barbershop    @relation(fields: [barbershopId], references: [id])
+  appointments     Appointment[] @relation("BarberAppointments")
+  queueEntries     QueueEntry[]  @relation("BarberQueueEntries")
+}
+
+// Modelo de serviço
+model Service {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  price        Decimal       @db.Decimal(10, 2)
+  duration     Int           // duração em minutos
+  loyaltyPoints Int          @default(10)
+  barbershopId String
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relações
+  barbershop   Barbershop    @relation(fields: [barbershopId], references: [id])
+  appointments Appointment[]
+}
+
+// Modelo de agendamento
+model Appointment {
+  id                String            @id @default(uuid())
+  date              DateTime          @db.Date
+  time              String            // formato HH:MM
+  clientId          String
+  barberId          String
+  serviceId         String
+  barbershopId      String
+  status            AppointmentStatus @default(PENDING)
+  notes             String?
+  price             Decimal           @db.Decimal(10, 2)
+  paymentStatus     PaymentStatus     @default(PENDING)
+  paymentMethod     String?
+  paymentId         String?
+  loyaltyPointsEarned Int             @default(0)
+  rated             Boolean           @default(false)
+  rating            Int?
+  ratingComment     String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relações
+  client            User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  barber            Barber            @relation("BarberAppointments", fields: [barberId], references: [id])
+  service           Service           @relation(fields: [serviceId], references: [id])
+  barbershop        Barbershop        @relation(fields: [barbershopId], references: [id])
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+// Modelo de fila
+model QueueEntry {
+  id               String        @id @default(uuid())
+  barbershopId     String
+  barberId         String
+  clientId         String?
+  position         Int
+  estimatedWaitTime Int
+  status           QueueStatus   @default(WAITING)
+  addedBy          AddedBy
+  clientName       String?
+  clientPhone      String?
+  notes            String?
+  notificationSent Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+  // Relações
+  barbershop       Barbershop    @relation(fields: [barbershopId], references: [id])
+  barber           Barber        @relation("BarberQueueEntries", fields: [barberId], references: [id])
+  client           User?         @relation("ClientQueueEntries", fields: [clientId], references: [id])
+}
+
+enum QueueStatus {
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AddedBy {
+  CLIENT
+  BARBER
+}
+
+// Modelo de pagamento
+model Payment {
+  id                String        @id @default(uuid())
+  userId            String
+  barbershopId      String
+  amount            Decimal       @db.Decimal(10, 2)
+  description       String
+  paymentMethod     String
+  paymentType       PaymentType
+  status            PaymentStatus @default(PENDING)
+  externalId        String?
+  externalReference String?
+  paymentData       Json?
+  relatedEntityId   String?
+  relatedEntityType String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relações
+  user              User          @relation(fields: [userId], references: [id])
+  barbershop        Barbershop    @relation(fields: [barbershopId], references: [id])
+}
+
+enum PaymentType {
+  APPOINTMENT
+  SUBSCRIPTION
+  PRODUCT
+}
+
+// Modelo de assinatura
+model Subscription {
+  id              String            @id @default(uuid())
+  barbershopId    String            @unique
+  ownerId         String
+  plan            Plan              @default(BASIC)
+  status          SubscriptionStatus @default(PENDING)
+  startDate       DateTime
+  endDate         DateTime
+  price           Decimal           @db.Decimal(10, 2)
+  paymentMethod   String?
+  paymentId       String?
+  autoRenew       Boolean           @default(true)
+  lastPaymentDate DateTime?
+  nextPaymentDate DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  // Relações
+  barbershop      Barbershop        @relation(fields: [barbershopId], references: [id])
+  owner           User              @relation("SubscriptionOwner", fields: [ownerId], references: [id])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  CANCELLED
+}

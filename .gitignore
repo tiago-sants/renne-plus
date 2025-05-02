@@ -1,0 +1,19 @@
+# Ignorar dependências
+**/node_modules/
+
+# Ignorar builds
+frontend/.next/
+backend/dist/
+
+# Ignorar configurações locais
+.env
+.env.*.local
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# Ignorar dados do Docker (se não quiser versionar volume)
+postgres_data/
