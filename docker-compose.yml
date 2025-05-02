@@ -16,47 +16,55 @@ services:
     networks:
       - renne-plus-network
 
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: renne-plus-backend
-    restart: always
-    ports:
-      - "3001:3001"
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/renneplus?schema=public
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: 7d
-      PORT: 3001
-      NODE_ENV: development
-      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
-    volumes:
-     # - ./backend:/app
-      - /app/node_modules
-    networks:
-      - renne-plus-network
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: renne-plus-frontend
-    restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-    volumes:
-      - ./frontend:/app
-##      - /app/node_modules
-      - /app/.next
-    networks:
-      - renne-plus-network
+#  backend:
+#    build:
+#      context: ./backend
+#      dockerfile: Dockerfile
+#    container_name: renne-plus-backend
+#    restart: always
+#    ports:
+#      - "3001:3001"
+#    depends_on:
+#      - postgres
+#    environment:
+#      PORT: 3001
+#      NODE_ENV: development
+#      FRONTEND_URL: http://frontend:3000
+#      JWT_SECRET: renne_plus_secret_key
+#      JWT_EXPIRES_IN: 7d
+#      DB_HOST: localhost
+#      DB_PORT: 5432
+#      DB_NAME: renne_plus
+#      DB_USER: postgres
+#      DB_PASSWORD: postgres
+#      MERCADOPAGO_ACCESS_TOKEN: TEST-0000000000000000-000000-00000000000000000000000000000000-000000000
+#      AWS_REGION: us-east-1
+#      AWS_ACCESS_KEY_ID: your_access_key
+#      AWS_SECRET_ACCESS_KEY: your_secret_key
+#    volumes:
+#      - ./backend:/app
+#      - /app/node_modules
+#    networks:
+#      - renne-plus-network
+#
+#  frontend:
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    container_name: renne-plus-frontend
+#    restart: always
+#    ports:
+#      - "3000:3000"
+#    depends_on:
+#      - backend
+#    environment:
+#      NEXT_PUBLIC_API_URL: http://backend:3001
+#    volumes:
+#      - ./frontend:/app
+#      - /app/node_modules
+#      - /app/.next
+#    networks:
+#      - renne-plus-network
 
 networks:
   renne-plus-network:

@@ -1,229 +1,141 @@
 # renne-plus - Sistema de Gerenciamento para Barbearias e Salões
 
-renne-plus é um sistema completo para gerenciamento de barbearias e salões, oferecendo funcionalidades como agendamento online, sistema de fila, painéis para barbeiros, clientes e administradores.
+**renne-plus** é um sistema completo para gerenciamento de barbearias e salões, oferecendo funcionalidades como agendamento online, sistema de fila, dashboards personalizados e comunicação em tempo real.
 
-## Funcionalidades Principais
+## 🚀 Funcionalidades Principais
 
-- **Sistema de Agendamento**: Permite que clientes agendem horários online, escolhendo serviço, profissional e horário.
-- **Sistema de Fila**: Gerencia filas de espera em tempo real, permitindo que clientes vejam o tempo estimado de espera.
-- **Painel do Barbeiro**: Dashboard para gerenciar status, fila atual e agendamentos.
-- **Painel do Cliente**: Interface para visualizar agendamentos, histórico e programa de fidelidade.
-- **Painel Administrativo**: Dashboard com métricas e gerenciamento de barbearias.
-- **Integração com Mercado Pago**: Para processamento de pagamentos.
-- **Comunicação em Tempo Real**: Atualizações instantâneas de status e filas.
+* **Agendamento Online**: Clientes escolhem serviços, profissionais e horários disponíveis.
+* **Sistema de Fila em Tempo Real**: Acompanhamento ao vivo da posição na fila e estimativas de espera.
+* **Painel do Barbeiro**: Gestão de status, agendamentos e fila.
+* **Painel do Cliente**: Visualização de agendamentos, histórico e fidelidade.
+* **Painel Administrativo**: Métricas e gerenciamento de barbearias.
+* **Pagamentos via Mercado Pago** (mock para desenvolvimento).
+* **Socket.IO**: Comunicação em tempo real.
 
-## Tecnologias Utilizadas
+## 🧰 Tecnologias Utilizadas
 
 ### Backend
-- Node.js com TypeScript
-- Express.js para API RESTful
-- Prisma ORM para PostgreSQL
-- JWT para autenticação
-- Socket.io para comunicação em tempo real
+
+* Node.js + TypeScript
+* Express.js
+* Prisma ORM + PostgreSQL
+* JWT (autenticação)
+* Socket.IO
 
 ### Frontend
-- Next.js com TypeScript
-- React para interface de usuário
-- Tailwind CSS para estilização
-- React Query para gerenciamento de estado
-- Socket.io Client para comunicação em tempo real
+
+* Next.js + TypeScript
+* Tailwind CSS
+* React Query
+* Socket.IO Client
 
 ### Infraestrutura
-- Docker e Docker Compose para containerização
-- PostgreSQL para banco de dados
-- AWS para hospedagem (instruções incluídas)
-- GitHub para controle de versão e CI/CD
 
-## Estrutura do Projeto
+* Docker (somente para banco de dados)
+* PostgreSQL
 
-```
+## 📁 Estrutura do Projeto
+
+```bash
 renne-plus/
-├── backend/                 # Código do backend em TypeScript
+├── backend/
 │   ├── prisma/              # Schema e migrações do Prisma
-│   ├── src/                 # Código fonte
-│   │   ├── config/          # Configurações
-│   │   ├── controllers/     # Controladores da API
-│   │   ├── middlewares/     # Middlewares
-│   │   ├── routes/          # Rotas da API
-│   │   ├── services/        # Serviços
-│   │   └── utils/           # Utilitários
-│   ├── Dockerfile           # Configuração Docker para backend
-│   └── package.json         # Dependências do backend
-├── frontend/                # Código do frontend em Next.js
-│   ├── src/                 # Código fonte
-│   │   ├── app/             # Páginas da aplicação
-│   │   ├── components/      # Componentes React
-│   │   │   ├── layout/      # Componentes de layout
-│   │   │   ├── providers/   # Provedores de contexto
-│   │   │   └── ui/          # Componentes de UI
-│   │   └── lib/             # Bibliotecas e utilitários
-│   ├── Dockerfile           # Configuração Docker para frontend
-│   └── package.json         # Dependências do frontend
-├── docker/                  # Arquivos relacionados ao Docker
-├── docs/                    # Documentação
-└── docker-compose.yml       # Configuração Docker Compose
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── ...
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml       # Contêiner do banco de dados
+└── README.md
 ```
 
-## Requisitos
+## ⚙️ Requisitos
 
-- Node.js 20.x ou superior
-- Docker e Docker Compose
-- PostgreSQL 14 ou superior (ou use o contêiner Docker)
-- Git
+* Node.js 20+
+* Docker + Docker Compose
+* Git
 
-## Instalação e Execução
+## 📦 Instalação e Execução
 
-### Usando Docker (Recomendado)
+### Usando Docker (somente banco de dados)
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/renne-plus.git
-   cd renne-plus
-   ```
+```bash
+git clone https://github.com/seu-usuario/renne-plus.git
+cd renne-plus
+docker-compose up -d postgres
+```
 
-2. Crie o arquivo .env a partir do exemplo:
-   ```bash
-   cp .env.example .env
-   ```
+### Rodando Backend Localmente
 
-3. Edite o arquivo .env com suas configurações
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run dev
+```
 
-4. Inicie os contêineres:
-   ```bash
-   docker-compose up -d
-   ```
+### Rodando Frontend Localmente
 
-5. Execute as migrações do banco de dados:
-   ```bash
-   docker-compose exec backend npx prisma migrate deploy
-   ```
+```bash
+cd frontend
+npm install
+echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env.local
+npm run dev
+```
 
-6. Acesse a aplicação:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
+Acesse:
 
-### Instalação Manual
+* Frontend: [http://localhost:3000](http://localhost:3000)
+* Backend (API): [http://localhost:3001](http://localhost:3001)
 
-#### Backend
+## ✅ Teste de Conexão da API
 
-1. Entre no diretório do backend:
-   ```bash
-   cd backend
-   ```
+```bash
+GET http://localhost:3001/health
+```
 
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
+Resposta esperada:
 
-3. Crie o arquivo .env a partir do exemplo:
-   ```bash
-   cp .env.example .env
-   ```
+```json
+{
+  "status": "ok",
+  "message": "renne-plus API is running"
+}
+```
 
-4. Edite o arquivo .env com suas configurações
+## 💃 Entidades Principais
 
-5. Execute as migrações do banco de dados:
-   ```bash
-   npx prisma migrate deploy
-   ```
+* `User`
+* `Barbershop`
+* `Barber`
+* `Service`
+* `Appointment`
+* `Queue`
+* `Payment`
+* `Subscription`
 
-6. Inicie o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
+## 🤝 Contribuição
 
-#### Frontend
+1. Fork este repositório
+2. Crie uma branch (`git checkout -b feature/nova-feature`)
+3. Commit suas alterações (`git commit -m 'feat: nova feature'`)
+4. Push para sua branch (`git push origin feature/nova-feature`)
+5. Crie um Pull Request
 
-1. Entre no diretório do frontend:
-   ```bash
-   cd frontend
-   ```
+## 📝 Licença
 
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
+Este projeto está licenciado sob a licença MIT.
 
-3. Crie o arquivo .env.local:
-   ```bash
-   echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env.local
-   ```
+## 📬 Contato
 
-4. Inicie o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
-
-5. Acesse a aplicação em http://localhost:3000
-
-## Implantação
-
-Para instruções detalhadas sobre como implantar o renne-plus na AWS, consulte o arquivo [docs/github-aws-deployment.md](docs/github-aws-deployment.md).
-
-## Desenvolvimento
-
-### Backend
-
-- Para executar o servidor em modo de desenvolvimento:
-  ```bash
-  cd backend
-  npm run dev
-  ```
-
-- Para compilar o TypeScript:
-  ```bash
-  npm run build
-  ```
-
-- Para executar o servidor em produção:
-  ```bash
-  npm start
-  ```
-
-### Frontend
-
-- Para executar o servidor em modo de desenvolvimento:
-  ```bash
-  cd frontend
-  npm run dev
-  ```
-
-- Para compilar o Next.js:
-  ```bash
-  npm run build
-  ```
-
-- Para executar o servidor em produção:
-  ```bash
-  npm start
-  ```
-
-## Estrutura do Banco de Dados
-
-O renne-plus utiliza PostgreSQL com Prisma ORM. O schema do banco de dados inclui as seguintes entidades principais:
-
-- **User**: Usuários do sistema (clientes, barbeiros, administradores)
-- **Barbershop**: Barbearias/salões cadastrados
-- **Barber**: Profissionais (barbeiros/cabeleireiros)
-- **Service**: Serviços oferecidos
-- **Appointment**: Agendamentos
-- **Queue**: Sistema de fila
-- **Payment**: Pagamentos
-- **Subscription**: Assinaturas de barbearias
-
-## Contribuição
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Faça commit das suas alterações (`git commit -m 'Adiciona nova feature'`)
-4. Faça push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes.
-
-## Contato
-
-Para mais informações, entre em contato com o desenvolvedor do projeto.
+Para dúvidas ou sugestões, entre em contato com o desenvolvedor.

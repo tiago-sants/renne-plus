@@ -28,7 +28,12 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     return res.status(401).json({ message: 'Token de autenticação não fornecido' });
   }
 
-  const token = authHeader.split(' ')[1];
+  // Verifica se o cabeçalho segue o formato 'Bearer <token>'
+  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token malformado ou ausente' });
+  }
 
   jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret', (err, user) => {
     if (err) {
