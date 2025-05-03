@@ -6,13 +6,14 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 
 // Carrega variáveis de ambiente
-dotenv.config();
+dotenv.config() ;
 
 // Importa rotas
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import barberRoutes from './routes/barber.routes';
-import appointmentRoutes from './routes/appointment.routes';
+// Importa os routers separados de appointments
+import { appointmentPublicRoutes, appointmentProtectedRoutes } from './routes/appointment.routes'; 
 import queueRoutes from './routes/queue.routes';
 import paymentRoutes from './routes/payment.routes';
 import adminRoutes from './routes/admin.routes';
@@ -25,35 +26,43 @@ import { initializeSocketService } from './services/socket.service';
 
 // Inicializa o app Express
 const app: Express = express();
-const server = http.createServer(app);
+const server = http.createServer(app) ;
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://frontend:3000',
-    methods: ['GET', 'POST'],
+    // Ajuste a origem conforme necessário para seu ambiente de desenvolvimento/produção
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Adicione outros métodos se necessário
     credentials: true
   }
-});
+}) ;
 
 // Middleware
-app.use(cors());
+app.use(cors({ 
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', 
+    credentials: true 
+}) );
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Rotas públicas
+// --- Rotas Públicas ---
+// Rotas que não exigem autenticação devem vir ANTES do app.use(authenticateJWT)
 app.use('/api/auth', authRoutes);
-
-// Rotas protegidas
-app.use('/api/users', authenticateJWT, userRoutes);
-app.use('/api/barbers', authenticateJWT, barberRoutes);
-app.use('/api/appointments', authenticateJWT, appointmentRoutes);
-app.use('/api/queue', authenticateJWT, queueRoutes);
-app.use('/api/payments', authenticateJWT, paymentRoutes);
-app.use('/api/admin', authenticateJWT, adminRoutes);
-
-// Rota de saúde
+app.use('/api/appointments', appointmentPublicRoutes); // Rotas públicas de appointments (ex: /availability)
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'renne-plus API is running' });
 });
+
+// --- Middleware de Autenticação Global ---
+// Todas as rotas definidas ABAIXO desta linha exigirão um token JWT válido
+app.use(authenticateJWT);
+
+// --- Rotas Protegidas ---
+app.use('/api/users', userRoutes);
+app.use('/api/barbers', barberRoutes);
+app.use('/api/appointments', appointmentProtectedRoutes); // Rotas protegidas de appointments
+app.use('/api/queue', queueRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Inicializa o serviço de socket
 initializeSocketService(io);

@@ -1,170 +1,98 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
-// Tipos
-export interface User {
+// Tipagem para os dados do usuário (ajuste conforme necessário)
+interface User {
   id: string;
   name: string;
   email: string;
   role: 'CLIENT' | 'BARBER' | 'ADMIN';
-  phone?: string;
-  loyaltyPoints?: number;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
+  // Adicione outros campos se necessário
 }
 
+// Tipagem para o contexto de autenticação
 interface AuthContextType {
-  user: User | null;
   token: string | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
-  logout: () => void;
+  user: User | null;
   isAuthenticated: boolean;
+  isLoading: boolean; // Para saber se ainda está carregando do localStorage
+  login: (newToken: string, userData: User) => void;
+  logout: () => void;
 }
 
+// Criação do contexto com valor inicial undefined para checagem
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// API base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Props do Provider
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Inicia carregando
 
-  // Verificar se o usuário está autenticado ao carregar a página
+  // Efeito para carregar token e usuário do localStorage ao iniciar
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      verifyToken(storedToken);
-    } else {
-      setIsLoading(false);
+    try {
+      const storedToken = localStorage.getItem('authToken');
+      const storedUser = localStorage.getItem('authUser');
+
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados de autenticação do localStorage:", error);
+      // Limpa em caso de erro ao parsear JSON, por exemplo
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+    } finally {
+      setIsLoading(false); // Finaliza o carregamento
     }
   }, []);
 
-  // Verificar token
-  const verifyToken = async (token: string) => {
+  const login = (newToken: string, userData: User) => {
     try {
-      setIsLoading(true);
-      const response = await axios.get(`${API_URL}/api/auth/verify-token`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.data.user) {
-        // Buscar dados completos do usuário
-        const userResponse = await axios.get(`${API_URL}/api/auth/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        setUser(userResponse.data.user);
-        setToken(token);
-      }
+      localStorage.setItem('authToken', newToken);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+      setToken(newToken);
+      setUser(userData);
     } catch (error) {
-      console.error('Erro ao verificar token:', error);
-      localStorage.removeItem('token');
-      setUser(null);
-      setToken(null);
-    } finally {
-      setIsLoading(false);
+      console.error("Erro ao salvar dados de autenticação no localStorage:", error);
     }
   };
 
-  // Login
-  const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
-        email,
-        password
-      });
-
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      setUser(user);
-      setToken(token);
-      
-      toast.success('Login realizado com sucesso!');
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error('Erro ao fazer login:', error);
-      toast.error(error.response?.data?.message || 'Erro ao fazer login');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Registro
-  const register = async (name: string, email: string, password: string, phone?: string) => {
-    try {
-      setIsLoading(true);
-      const response = await axios.post(`${API_URL}/api/auth/register`, {
-        name,
-        email,
-        password,
-        phone
-      });
-
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      setUser(user);
-      setToken(token);
-      
-      toast.success('Registro realizado com sucesso!');
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error('Erro ao registrar:', error);
-      toast.error(error.response?.data?.message || 'Erro ao registrar');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Logout
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setToken(null);
-    toast.success('Logout realizado com sucesso!');
-    router.push('/');
+    try {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+      setToken(null);
+      setUser(null);
+      // Opcional: redirecionar para a página de login
+      // window.location.href = '/login'; // Use router se preferir
+    } catch (error) {
+      console.error("Erro ao remover dados de autenticação do localStorage:", error);
+    }
   };
+
+  const isAuthenticated = !!token && !!user;
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        login,
-        register,
-        logout,
-        isAuthenticated: !!user
-      }}
-    >
+    <AuthContext.Provider value={{ token, user, isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook para usar o contexto de autenticação
-export const useAuth = () => {
+// Hook customizado para usar o contexto de autenticação
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
 };
+

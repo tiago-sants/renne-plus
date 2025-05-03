@@ -3,7 +3,13 @@ import { body } from 'express-validator';
 import * as appointmentController from '../controllers/appointment.controller';
 import { authenticateJWT, isClient, isBarber } from '../middlewares/auth.middleware';
 
-const router = express.Router();
+const publicRouter = express.Router();
+const protectedRouter = express.Router();
+
+// --- Rotas Públicas ---
+publicRouter.get('/availability', appointmentController.checkAvailability);
+
+// --- Rotas Protegidas ---
 
 // Validação para criação de agendamento
 const createAppointmentValidation = [
@@ -26,16 +32,15 @@ const rateAppointmentValidation = [
   body('comment').optional()
 ];
 
-// Rotas para clientes
-router.get('/client', authenticateJWT, isClient, appointmentController.getClientAppointments);
-router.post('/', authenticateJWT, isClient, createAppointmentValidation, appointmentController.createAppointment);
-router.put('/:id/rate', authenticateJWT, isClient, rateAppointmentValidation, appointmentController.rateAppointment);
+// Rotas para clientes (protegidas)
+protectedRouter.get('/client', authenticateJWT, isClient, appointmentController.getClientAppointments);
+protectedRouter.post('/', authenticateJWT, isClient, createAppointmentValidation, appointmentController.createAppointment);
+protectedRouter.put('/:id/rate', authenticateJWT, isClient, rateAppointmentValidation, appointmentController.rateAppointment);
 
-// Rotas para barbeiros
-router.get('/barber', authenticateJWT, isBarber, appointmentController.getBarberAppointments);
-router.put('/:id/status', authenticateJWT, updateStatusValidation, appointmentController.updateAppointmentStatus);
+// Rotas para barbeiros (protegidas)
+protectedRouter.get('/barber', authenticateJWT, isBarber, appointmentController.getBarberAppointments);
+protectedRouter.put('/:id/status', authenticateJWT, updateStatusValidation, appointmentController.updateAppointmentStatus);
+// OBS: O middleware authenticateJWT já é aplicado globalmente em index.ts para estas rotas, 
+// então pode ser removido daqui se preferir, mas mantê-lo não causa problema.
 
-// Rotas públicas
-router.get('/availability', appointmentController.checkAvailability);
-
-export default router;
+export { publicRouter as appointmentPublicRoutes, protectedRouter as appointmentProtectedRoutes };
