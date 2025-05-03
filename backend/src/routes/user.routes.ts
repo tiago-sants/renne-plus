@@ -12,7 +12,7 @@ export default router; */
 
 
 import express from 'express';
-// import { authenticateJWT } from '../middlewares/auth.middleware';
+import { authenticateJWT } from '../middlewares/auth.middleware';
 import { createUser } from '../controllers/user.controller';
 import { validateRegisterData } from '../middlewares/validateRegister.middleware';
 import { body, param } from 'express-validator';

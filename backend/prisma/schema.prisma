@@ -49,6 +49,7 @@ model barbershop {
   zipCode         String
   phone           String
   email           String?
+  description     String?
   openingHours    Json
   isOpen          Boolean       @default(false)
   usesQueue       Boolean       @default(true)

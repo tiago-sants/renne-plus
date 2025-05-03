@@ -63,3 +63,7 @@ export const getMyBarberProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro interno ao buscar perfil de barbeiro.', error: (error as Error).message });
   }
 };
+
+export const getMe = (req: Request, res: Response) => {
+  res.status(200).json({ message: 'User profile data' });
+};

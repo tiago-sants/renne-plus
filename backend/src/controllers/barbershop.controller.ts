@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { validationResult } from 'express-validator';
 
 const prisma = new PrismaClient();
@@ -20,10 +20,10 @@ export const createBarbershop = async (req: Request, res: Response) => {
   //    Aqui, vamos assumir que QUALQUER usuário logado pode criar UMA barbearia
   //    se ele ainda não for dono de uma. Poderia ser uma role específica também.
   const userId = req.user.id;
-  const userRole = req.user.role;
+  const Role = req.user.role;
 
   // Opcional: Se apenas roles específicas podem criar, descomente e ajuste:
-  // if (userRole !== UserRole.CLIENT && userRole !== UserRole.BARBER) { // Exemplo: Cliente ou Barbeiro podem virar donos
+  // if (Role !== Role.CLIENT && Role !== Role.BARBER) { // Exemplo: Cliente ou Barbeiro podem virar donos
   //   return res.status(403).json({ message: 'Você não tem permissão para criar uma barbearia.' });
   // }
 
@@ -59,10 +59,10 @@ export const createBarbershop = async (req: Request, res: Response) => {
     // 5. Opcional: Atualizar a role do usuário para BARBER ou OWNER?
     //    Se um CLIENTE cria uma barbearia, talvez ele deva virar BARBER automaticamente?
     //    Ou talvez exista uma role OWNER?
-    // if (userRole === UserRole.CLIENT) {
+    // if (Role === Role.CLIENT) {
     //   await prisma.user.update({
     //     where: { id: userId },
-    //     data: { role: UserRole.BARBER }, // Ou UserRole.OWNER se existir
+    //     data: { role: Role.BARBER }, // Ou Role.OWNER se existir
     //   });
     //   console.log(`Usuário ${userId} atualizado para role BARBER após criar barbearia.`);
     // }
