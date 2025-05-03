@@ -17,6 +17,7 @@ import { appointmentPublicRoutes, appointmentProtectedRoutes } from './routes/ap
 import queueRoutes from './routes/queue.routes';
 import paymentRoutes from './routes/payment.routes';
 import adminRoutes from './routes/admin.routes';
+import barbershopRoutes from './routes/barbershop.routes';
 
 // Importa middleware de autenticação
 import { authenticateJWT } from './middlewares/auth.middleware';
@@ -63,6 +64,8 @@ app.use('/api/appointments', appointmentProtectedRoutes); // Rotas protegidas de
 app.use('/api/queue', queueRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/queue', queueRoutes);
+app.use('/api/barbershops', barbershopRoutes);
 
 // Inicializa o serviço de socket
 initializeSocketService(io);
